@@ -49,6 +49,7 @@
 // Sweeping an mspan and freeing objects on it proceeds up a similar
 // hierarchy:
 //
+//  note: todo 分配内存时为什么会导致mspan被返回给mcache？
 //	1. If the mspan is being swept in response to allocation, it
 //	   is returned to the mcache to satisfy the allocation.
 //
@@ -84,10 +85,12 @@
 // 4MB on 32-bit (heapArenaBytes). Each arena's start address is also
 // aligned to the arena size.
 //
+// note: bitmap区域描述的单位是word,指针大小 span区域描述的单位是page, 8KB
 // Each arena has an associated heapArena object that stores the
 // metadata for that arena: the heap bitmap for all words in the arena
-// and the span map for all pages in the arena. heapArena objects are
-// themselves allocated off-heap.
+// and the span map for all pages in the arena.
+// note: todo 这对应哪里的代码
+// heapArena objects are themselves allocated off-heap.
 //
 // Since arenas are aligned, the address space can be viewed as a
 // series of arena frames. The arena map (mheap_.arenas) maps from
@@ -458,6 +461,7 @@ func mallocinit() {
 	_g_ := getg()
 	_g_.m.mcache = allocmcache()
 
+	// https://forum.golangbridge.org/t/high-virtual-memory-allocation-by-golang/6716/5
 	// Create initial arena growth hints.
 	if sys.PtrSize == 8 {
 		// On a 64-bit machine, we pick the following hints
